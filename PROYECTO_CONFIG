@@ -42,6 +42,31 @@ START
 ; CICLO INFINITO
 ;***************************
 LOOP:
+    CALL    CANAL_0
+    CALL    DELAY_50MS
+    BSF	    ADCON0, GO		    ; EMPIEZA LA CONVERSIÓN
+CHECK_AD:
+    BTFSC   ADCON0, GO	       	    ; revisa que terminó la conversión
+    GOTO    $-1
+    BCF	    PIR1, ADIF		    ; borramos la bandera del adc			; mueve adresh al puerto b
+    MOVFW   ADRESH
+    MOVWF   VALOR_ADC
+    MOVWF   PORTB
+    
+CHECK_RCIF:			    ; RECIBE EN RX y lo muestra en PORTD
+    BTFSS   PIR1, RCIF
+    GOTO    CHECK_TXIF
+    MOVF    RCREG, W	
+    MOVWF   PORTD
+    MOVWF   CCPR2L
+    
+CHECK_TXIF: 
+    MOVFW   VALOR_ADC		    ; ENVÍA PORTB POR EL TX
+    MOVWF   TXREG
+   
+    BTFSS   PIR1, TXIF
+    GOTO    $-1
+    
     GOTO LOOP
     
 ;------------------------------SUBRUTINAS---------------------------------------
